@@ -8,7 +8,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class AccuweatherModel implements WeatherModel {
     //http://dataservice.accuweather.com/forecasts/v1/daily/1day/349727
@@ -110,9 +112,14 @@ public class AccuweatherModel implements WeatherModel {
         for (int i = 0; i < n; i++) {
             minTempInF = objectMapper.readTree(response).at("/DailyForecasts").get(i).at("/Temperature/Minimum/Value").asText();
             maxTempInF = objectMapper.readTree(response).at("/DailyForecasts").get(i).at("/Temperature/Maximum/Value").asText();
-            date = objectMapper.readTree(response).at("/DailyForecasts").get(i).at("/Date").asText();
+            date = objectMapper.readTree(response).at("/DailyForecasts").get(i).at("/Date").asText().replaceAll("T.*", "");
             averageTempInCelsium = (int) ((((Float.parseFloat(minTempInF) + Float.parseFloat(maxTempInF)) / 2) - 32) / 1.8);
-            System.out.println(date.replaceAll("T.*", "") + " Средняя температура в " + selectedCity + ": " + averageTempInCelsium + " градусов по C");
+            try {
+                new DataBaseRepository().saveWeatherToDataBase(new Weather(selectedCity, date, averageTempInCelsium));
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+            System.out.println(date + " Средняя температура в " + selectedCity + ": " + averageTempInCelsium + " градусов по C");
         }
     }
 }
