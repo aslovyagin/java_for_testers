@@ -2,17 +2,16 @@ package lesson7.project;
 
 import lesson7.project.entity.Weather;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DataBaseRepository {
     private String insertWeather = "insert into weather (city, localdate, temperature) values (?, ?, ?)";
     private static final String DB_PATH = "jdbc:sqlite:geekbrains.db";
+    private List<Weather> weatherList;
 
     static {
         try {
@@ -50,13 +49,20 @@ public class DataBaseRepository {
         }
     }
 
-    //public List<Weather> getSavedToDBWeather() {
-    //    try (Connection connection = DriverManager.getConnection(DB_PATH)) {
-    //        //TODO: реализовать этот метод получения данных из таблицы погоды
-    //    } catch (SQLException throwables) {
-    //        throwables.printStackTrace();
-    //    }
-    //}
+    public List<Weather> getSavedToDBWeather() {
+        try (Connection connection = DriverManager.getConnection(DB_PATH)) {
+            //TODO: реализовать этот метод получения данных из таблицы погоды
+            weatherList = new LinkedList<>();
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select * from weather");
+            while (resultSet.next()) {
+                weatherList.add(new Weather(resultSet.getString("city"), resultSet.getString("localdate"), resultSet.getDouble("temperature")));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return weatherList;
+    }
 
     public static void main(String[] args) throws SQLException {
         DataBaseRepository dataBaseRepository = new DataBaseRepository();
